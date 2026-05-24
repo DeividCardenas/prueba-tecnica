@@ -1,0 +1,13 @@
+{
+  "repo_notes": [
+    {
+      "content": "Este repositorio contiene la solución 'FondoXYZ' desarrollada para una prueba técnica. Consiste en una aplicación web en ASP.NET Core MVC (C#) conectada a una base de datos SQL Server, diseñada para gestionar reservas de sedes recreativas y apartamentos."
+    },
+    {
+      "content": "Arquitectura y Lógica de Negocio: La lógica central de cálculo de tarifas, recargos por huéspedes y visitantes adicionales, además de la verificación de disponibilidad (evitando sobrecupos), está delegada completamente a la base de datos a través de Procedimientos Almacenados (SPs). El backend en C# actúa como orquestador y expone APIs REST consumidas por el frontend."
+    },
+    {
+      "content": "Estructura del Proyecto:\n1. 'FondoXYZ_Solution/FondoXYZ.Web': Contiene los Controladores (ej. ReservasController, TarifasApiController) y Vistas Razor (ej. ConsultarTarifas.cshtml) que conforman el Frontend interactivo.\n2. 'scripts-sql': Directorio vital que almacena 'Base_de_datos.sql' (esquema y datos semilla) y 'SPs_1-4.sql' (reglas de negocio avanzadas y cotización dinámica)."
+    }
+  ]
+}
