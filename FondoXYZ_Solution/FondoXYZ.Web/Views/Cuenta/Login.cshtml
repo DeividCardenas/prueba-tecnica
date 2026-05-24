@@ -1,0 +1,119 @@
+﻿@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = null; // Pantalla de acceso independiente sin el menú principal
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Fondo XYZ</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+            /* Estilos personalizados para el Split-Screen del Login */
+            .bg-login-image {
+                background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                color: white;
+            }
+
+            .form-control:focus {
+                border-color: #1e3c72;
+                box-shadow: 0 0 0 0.25rem rgba(30, 60, 114, 0.25);
+            }
+
+            .btn-primary {
+                background-color: #1e3c72;
+                border-color: #1e3c72;
+                padding: 12px;
+                transition: all 0.3s ease;
+            }
+
+                .btn-primary:hover {
+                    background-color: #2a5298;
+                    border-color: #2a5298;
+                    transform: translateY(-1px);
+                }
+    </style>
+</head>
+<body class="bg-light">
+
+    <div class="container-fluid ps-md-0">
+        <div class="row g-0">
+            <div class="d-none d-md-flex col-md-5 col-lg-6 bg-login-image align-items-center justify-content-center p-5 text-center shadow-lg">
+                <div>
+                    <h1 class="display-4 fw-bold mb-4">Bienvenido de Nuevo</h1>
+                    <p class="lead mb-5">Ingresa al portal de asociados del Fondo XYZ para gestionar tus reservas, consultar la disponibilidad de sedes y realizar tus pagos en línea de forma segura.</p>
+                    <div class="mt-5">
+                        <span class="badge bg-light text-primary p-2 fs-6 rounded-pill shadow-sm">Acceso Seguro SSL</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7 col-lg-6">
+                <div class="login d-flex align-items-center py-5" style="min-height: 100vh;">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-md-10 col-lg-8">
+
+                                <h3 class="login-heading mb-2 fw-bold text-dark">Iniciar Sesión</h3>
+                                <p class="text-muted mb-4">Introduce tus credenciales de acceso para continuar.</p>
+
+                                @* Alerta de Éxito (Si el usuario viene de registrarse correctamente) *@
+                                @if (TempData["MensajeExito"] != null)
+                                {
+                                    <div class="alert alert-success shadow-sm border-0 border-start border-success border-4 small" role="alert">
+                                        <span class="fw-bold">@TempData["MensajeExito"]</span>
+                                    </div>
+                                }
+
+                                @* Alerta de Error *@
+                                @if (ViewBag.Error != null)
+                                {
+                                    <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 small" role="alert">
+                                        <span class="fw-bold">@ViewBag.Error</span>
+                                    </div>
+                                }
+
+                                <form asp-action="Login" method="post">
+                                    @Html.AntiForgeryToken()
+
+                                    <div class="form-floating mb-3">
+                                        <input name="nroDocumento" id="nroDocumento" class="form-control rounded-3 border-light shadow-sm" placeholder="Documento" required autocomplete="off" />
+                                        <label for="nroDocumento" class="text-muted">Número de Documento</label>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <input name="clave" id="clave" type="password" class="form-control rounded-3 border-light shadow-sm" placeholder="Contraseña" required />
+                                        <label for="clave" class="text-muted">Contraseña</label>
+                                    </div>
+
+                                    <div class="text-end mb-4">
+                                        <a class="text-decoration-none small text-danger fw-semibold" asp-action="RecuperarClave">¿Olvidaste tu contraseña?</a>
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button class="btn btn-primary btn-lg rounded-3 shadow text-uppercase fw-bold text-white" type="submit">Ingresar al Sistema</button>
+                                    </div>
+
+                                    <hr class="my-4 text-muted">
+
+                                    <div class="text-center">
+                                        <span class="text-muted small">¿Aún no tienes cuenta?</span>
+                                        <a class="text-primary fw-bold text-decoration-none small" asp-action="Registro">Regístrate aquí</a>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

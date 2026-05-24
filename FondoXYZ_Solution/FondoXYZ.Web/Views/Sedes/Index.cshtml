@@ -1,0 +1,161 @@
+@model IEnumerable<FondoXYZ.Domain.Entities.Sede>
+
+@{
+    ViewData["Title"] = "Catálogo de Destinos";
+}
+
+<div class="container-fluid px-0 mt-n4 mb-4">
+    <div class="p-5 text-white shadow-sm" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 0 0 1rem 1rem;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-5 fw-bold mb-2">Sedes y Apartamentos Turísticos</h1>
+                    <p class="lead text-white-50 mb-0">Explora el Fondo XYZ diseñado para el turismo, el deporte y el bienestar familiar.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <span class="badge bg-white text-primary px-3 py-2 rounded-pill fw-bold shadow-sm">
+                        @Model.Count() Destinos Disponibles
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row mb-5 g-3">
+        <div class="col-md-7 col-lg-8 d-flex align-items-center flex-wrap gap-2">
+            <button type="button" class="btn btn-primary btn-filter rounded-pill px-4 fw-bold shadow-sm" data-filter="all">Todos</button>
+            <button type="button" class="btn btn-outline-secondary btn-filter rounded-pill px-4 fw-semibold" data-filter="Sede Recreativa">Sedes Recreativas</button>
+            <button type="button" class="btn btn-outline-secondary btn-filter rounded-pill px-4 fw-semibold" data-filter="Apartamento">Apartamentos</button>
+        </div>
+
+        <div class="col-md-5 col-lg-4">
+            <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                <span class="input-group-text bg-white border-0 text-muted">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                    </svg>
+                </span>
+                <input type="text" id="searchSede" class="form-control border-0 bg-white py-2" placeholder="Buscar por ciudad o nombre..." autocomplete="off" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4" id="sedeContainer">
+        @foreach (var sede in Model)
+        {
+            <div class="col-md-6 col-lg-4 sede-item" data-type="@sede.Tipo">
+                <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden custom-card">
+
+                    <div class="position-relative p-4 text-white d-flex flex-column justify-content-end" style="min-height: 140px; background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.7)), url('/images/placeholder-sede.jpg') center/cover, #2a5298;">
+                        <span class="badge position-absolute top-0 end-0 m-3 shadow-sm rounded-pill fw-bold text-uppercase px-3 py-2 @(sede.Tipo == "Apartamento" ? "bg-info text-dark" : "bg-warning text-dark")">
+                            @sede.Tipo
+                        </span>
+                        <h4 class="fw-bold mb-1 card-title text-truncate">@sede.Nombre</h4>
+                        <div class="d-flex align-items-center text-white-50 small location-text">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-geo-alt-fill me-1 text-danger" viewBox="0 0 16 16">
+                                <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
+                            </svg>
+                            <span class="text-truncate">@sede.Ubicacion</span>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4 d-flex flex-column justify-content-between">
+                        <p class="text-secondary small card-description mb-4">
+                            @(string.IsNullOrEmpty(sede.Descripcion) ? "Disfrute de una estancia confortable con todos los servicios y estándares de calidad que nuestro fondo ofrece." : sede.Descripcion)
+                        </p>
+
+                        <div class="border-top pt-3 mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <span class="text-muted small fw-medium">Aforo Máximo Sede:</span>
+                                <span class="badge bg-light text-dark border fw-bold px-3 py-2 rounded-2">
+                                    @sede.CapacidadMaxima Personas
+                                </span>
+                            </div>
+
+                            <div class="d-grid">
+                                <a asp-action="Detalles" asp-route-id="@sede.Id" class="btn btn-primary fw-bold text-uppercase tracking-wider btn-view py-2 rounded-2 shadow-sm">
+                                    Ver Alojamientos
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let activeFilter = 'all';
+
+            // Función unificada de filtrado (Busqueda + Categoría)
+            function filtrarSedes() {
+                let searchText = $("#searchSede").val().toLowerCase();
+
+                $("#sedeContainer .sede-item").each(function () {
+                    let itemType = $(this).data("type");
+                    let titleText = $(this).find(".card-title").text().toLowerCase();
+                    let locText = $(this).find(".location-text").text().toLowerCase();
+
+                    let matchesType = (activeFilter === 'all' || itemType === activeFilter);
+                    let matchesSearch = (titleText.indexOf(searchText) > -1 || locText.indexOf(searchText) > -1);
+
+                    if (matchesType && matchesSearch) {
+                        $(this).fadeIn(200);
+                    } else {
+                        $(this).fadeOut(200);
+                    }
+                });
+            }
+
+            // Evento de Escritura en el Buscador
+            $("#searchSede").on("keyup", filtrarSedes);
+
+            // Evento de Clic en los Botones de Filtro por Categoría
+            $(".btn-filter").on("click", function () {
+                $(".btn-filter").removeClass("btn-primary shadow-sm").addClass("btn-outline-secondary fw-semibold");
+                $(this).removeClass("btn-outline-secondary fw-semibold").addClass("btn-primary shadow-sm fw-bold");
+
+                activeFilter = $(this).data("filter");
+                filtrarSedes();
+            });
+        });
+    </script>
+
+    <style>
+        /* Efectos visuales de elevación y transición fluida */
+        .custom-card {
+            transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease;
+        }
+
+            .custom-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 0.75rem 2rem rgba(0,0,0,0.12) !important;
+            }
+
+        .btn-view {
+            background-color: #1e3c72;
+            border-color: #1e3c72;
+            font-size: 0.8rem;
+            transition: background-color 0.2s ease;
+        }
+
+            .btn-view:hover {
+                background-color: #2a5298;
+                border-color: #2a5298;
+            }
+        /* Limitador estricto para descripciones muy largas para no romper la simetría */
+        .card-description {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 3.6rem; /* Mantiene la misma altura independientemente del texto */
+        }
+    </style>
+}

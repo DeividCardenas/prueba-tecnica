@@ -1,0 +1,155 @@
+@model FondoXYZ.Domain.Entities.Reserva
+
+@{
+    ViewData["Title"] = $"Editar Reserva #{Model.Id}";
+    string minFecha = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+}
+
+<div class="container mt-2" style="max-width: 750px;">
+
+    <!-- ENCABEZADO -->
+    <div class="bg-white p-4 rounded-3 shadow-sm mb-4 d-flex align-items-center gap-3">
+        <div class="rounded-3 d-flex align-items-center justify-content-center"
+             style="width:48px; height:48px; background: linear-gradient(135deg,#1e3c72,#2a5298); flex-shrink:0;">
+            <span style="font-size:22px;">✏️</span>
+        </div>
+        <div>
+            <h4 class="fw-bold text-dark mb-0">Editar Reserva <span class="text-primary">#@Model.Id</span></h4>
+            <p class="text-muted mb-0 small">Modifique las fechas o la cantidad de personas. El costo se recalculará automáticamente.</p>
+        </div>
+    </div>
+
+    <!-- ALERTAS -->
+    @if (TempData["MensajeError"] != null)
+    {
+        <div class="alert alert-danger border-0 border-start border-danger border-4 small mb-3 shadow-sm">
+            ⚠️ <strong>@TempData["MensajeError"]</strong>
+        </div>
+    }
+
+    <!-- TARJETA ACTUAL DE LA RESERVA (sólo lectura) -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4" style="background: linear-gradient(135deg,#f8f9ff,#eef2ff);">
+        <div class="card-body p-4">
+            <h6 class="fw-bold text-primary mb-3">📋 Datos actuales de la reserva</h6>
+            <div class="row g-3 text-center">
+                <div class="col-md-4">
+                    <div class="bg-white rounded-3 p-3 border shadow-sm h-100">
+                        <small class="text-muted d-block mb-1" style="font-size:11px;">DESTINO</small>
+                        <span class="fw-bold text-dark">@Model.Sede.Nombre</span>
+                        <div class="badge rounded-pill mt-1" style="background:#e9ecef; color:#495057; font-size:10px;">@Model.Sede.Tipo</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="bg-white rounded-3 p-3 border shadow-sm h-100">
+                        <small class="text-muted d-block mb-1" style="font-size:11px;">ALOJAMIENTO</small>
+                        <span class="fw-bold text-dark">@Model.Alojamiento.Nombre</span>
+                        <div class="text-muted small mt-1">Cap. @Model.Alojamiento.CapacidadMaxima personas</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="bg-white rounded-3 p-3 border shadow-sm h-100">
+                        <small class="text-muted d-block mb-1" style="font-size:11px;">COSTO ACTUAL</small>
+                        <span class="fw-bold text-primary fs-5">@Model.CostoTotal.ToString("C0")</span>
+                        <div class="text-muted small mt-1">@((Model.FechaSalida - Model.FechaLlegada).Days) noche(s)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULARIO DE EDICIÓN -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+            <h6 class="fw-bold text-dark mb-4">🔄 Nuevos datos de la reserva</h6>
+
+            <form asp-action="EditarReserva" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- RANGO DE FECHAS -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-dark small text-uppercase">
+                        📅 Nueva Fecha de Llegada
+                    </label>
+                    <input type="date"
+                           id="nuevaFechaLlegada"
+                           name="nuevaFechaLlegada"
+                           class="form-control form-control-lg rounded-3 border-2"
+                           value="@Model.FechaLlegada.ToString("yyyy-MM-dd")"
+                           min="@minFecha"
+                           required />
+                    <div class="form-text">La llegada debe ser mínimo mañana.</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-dark small text-uppercase">
+                        📅 Nueva Fecha de Salida
+                    </label>
+                    <input type="date"
+                           id="nuevaFechaSalida"
+                           name="nuevaFechaSalida"
+                           class="form-control form-control-lg rounded-3 border-2"
+                           value="@Model.FechaSalida.ToString("yyyy-MM-dd")"
+                           min="@minFecha"
+                           required />
+                </div>
+
+                <!-- CANTIDAD DE PERSONAS -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-dark small text-uppercase">
+                        👥 Cantidad de Personas
+                    </label>
+                    <input type="number"
+                           id="nuevaCantidadPersonas"
+                           name="nuevaCantidadPersonas"
+                           class="form-control form-control-lg rounded-3 border-2"
+                           value="@Model.CantidadPersonas"
+                           min="1"
+                           max="25"
+                           required />
+                    <div class="form-text">Capacidad base del alojamiento: @Model.Alojamiento.CapacidadMaxima personas. Se permiten adicionales con recargo.</div>
+                </div>
+
+                <!-- AVISO DE RECÁLCULO -->
+                <div class="alert alert-info border-0 border-start border-info border-4 small mb-4">
+                    <strong>💡 Importante:</strong> Al guardar los cambios, el sistema recalculará automáticamente el costo total usando las tarifas actualizadas según las nuevas fechas, temporada y personas.
+                </div>
+
+                <!-- BOTONES -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary fw-bold px-4 py-2 rounded-3 shadow-sm flex-grow-1" style="background: linear-gradient(135deg,#1e3c72,#2a5298); border:none;">
+                        💾 Guardar Cambios y Recalcular
+                    </button>
+                    <a asp-action="MisReservas" class="btn btn-outline-secondary fw-semibold px-4 py-2 rounded-3">
+                        ← Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Validación dinámica: salida siempre después de llegada
+        const llegada = document.getElementById('nuevaFechaLlegada');
+        const salida  = document.getElementById('nuevaFechaSalida');
+
+        llegada.addEventListener('change', function () {
+            const minSalida = new Date(this.value);
+            minSalida.setDate(minSalida.getDate() + 1);
+            salida.min = minSalida.toISOString().split('T')[0];
+
+            if (salida.value && salida.value <= this.value) {
+                salida.value = minSalida.toISOString().split('T')[0];
+            }
+        });
+    </script>
+
+    <style>
+        .form-control:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 0.2rem rgba(42, 82, 152, 0.15);
+        }
+        .form-control-lg { font-size: 1rem; }
+    </style>
+}

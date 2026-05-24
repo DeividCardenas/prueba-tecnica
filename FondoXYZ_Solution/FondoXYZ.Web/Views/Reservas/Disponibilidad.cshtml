@@ -1,0 +1,376 @@
+@{
+    ViewData["Title"] = "Consultar Disponibilidad";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<div id="disponibilidadContext"
+     data-sedes="@System.Text.Json.JsonSerializer.Serialize(ViewBag.SedesRaw ?? new object[0])"
+     data-preselected="@(ViewBag.SelectedSedeId ?? 0)"
+     style="display: none;">
+</div>
+
+<div class="container mt-2">
+
+    <div class="p-4 bg-white rounded-3 shadow-sm border-0 mb-4">
+        <h3 class="fw-bold text-dark mb-1">Reserva de Espacios en Línea</h3>
+        <p class="text-muted mb-0 small">Seleccione su destino, el tiempo de estadía y la cantidad de personas para verificar la disponibilidad.</p>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-5 rounded-3">
+        <div class="card-body p-4 bg-white">
+            <form id="formDisponibilidad">
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-secondary text-uppercase" style="font-size:11px; letter-spacing:.5px;">Destino</label>
+                        <select class="form-select border rounded-2 py-2 text-dark fw-semibold" id="sedeId" required>
+                            <option value="">Seleccione un destino...</option>
+                            @if (ViewBag.Sedes != null)
+                            {
+                                foreach (var item in (SelectList)ViewBag.Sedes)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold text-secondary text-uppercase" style="font-size:11px; letter-spacing:.5px;">Tiempo de estadía (Llegada - Salida)</label>
+                        <input type="text" class="form-control border rounded-2 py-2 fw-semibold"
+                               id="rangoFechas"
+                               placeholder="Seleccione un destino primero..."
+                               disabled required>
+                        <input type="hidden" id="fechaLlegada">
+                        <input type="hidden" id="fechaSalida">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold text-secondary text-uppercase" style="font-size:11px; letter-spacing:.5px;">Personas</label>
+                        <input type="number" class="form-control border rounded-2 py-2 text-center fw-bold"
+                               id="cantidadPersonas" min="1" max="10" value="1" required>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12" id="descripcionSede"></div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <button type="submit" id="btnConsultar" class="btn btn-primary btn-lg w-100 fw-semibold rounded-2 btn-buscar">
+                            Consultar Disponibilidad
+                        </button>
+                    </div>
+                </div>
+
+                <div id="loadingIndicator" class="text-center py-3" style="display:none;">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    <span class="text-muted small">Consultando disponibilidad...</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-4" id="resultadosContenedor" style="display: none;">
+        <div class="border-bottom pb-2 mb-4">
+            <h5 class="fw-bold text-dark mb-0">Alojamientos y Unidades Habitacionales</h5>
+            <p class="text-muted small mb-0">Seleccione el alojamiento que se ajuste a sus necesidades y verifique las tarifas antes de reservar.</p>
+        </div>
+
+        <div class="row g-4" id="gridResultados">
+            <!-- Los resultados se insertarán aquí dinámicamente -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+    <script>
+        const contextEl = document.getElementById('disponibilidadContext');
+        const sedesData = JSON.parse(contextEl.getAttribute('data-sedes') || '[]');
+        const preselectedSedeId = parseInt(contextEl.getAttribute('data-preselected') || '0', 10);
+
+        let calendarioFechas;
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            calendarioFechas = flatpickr("#rangoFechas", {
+                mode: "range",
+                minDate: "today",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d \\de M \\de Y",
+                locale: "es",
+                showMonths: 2,
+                onChange: function (selectedDates) {
+                    if (selectedDates.length === 2) {
+                        document.getElementById('fechaLlegada').value = selectedDates[0].toISOString().split('T')[0];
+                        document.getElementById('fechaSalida').value = selectedDates[1].toISOString().split('T')[0];
+                    }
+                },
+                onDayCreate: function (dObj, dStr, fp, dayElem) {
+                    if (dayElem.classList.contains("flatpickr-disabled")) {
+                        dayElem.style.position = "relative";
+                        const marcador = document.createElement("span");
+                        marcador.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;font-weight:bold;color:#dc3545;opacity:.45;pointer-events:none;";
+                        marcador.innerText = "×";
+                        dayElem.appendChild(marcador);
+                    }
+                }
+            });
+
+            document.getElementById('sedeId').addEventListener('change', function () {
+                cargarFechasBloqueadas(this.value);
+                mostrarDescripcion(this.value);
+            });
+
+            if (preselectedSedeId > 0) {
+                document.getElementById('sedeId').value = preselectedSedeId;
+                cargarFechasBloqueadas(preselectedSedeId);
+                mostrarDescripcion(preselectedSedeId);
+            }
+        });
+
+        function mostrarDescripcion(sedeId) {
+            const contenedor = document.getElementById('descripcionSede');
+            if (!sedeId) { contenedor.innerHTML = ''; return; }
+            const sede = sedesData.find(s => s.Id === Number(sedeId));
+            if (sede) {
+                contenedor.innerHTML = `
+                    <div class="border-start border-primary border-4 ps-3 py-2 mt-2 bg-light rounded-end-2">
+                        <span class="fw-semibold text-dark small">${sede.Nombre}</span>
+                        <p class="mb-0 text-muted" style="font-size:12px;">${sede.Descripcion || 'Sin descripción registrada.'}</p>
+                    </div>`;
+            } else {
+                contenedor.innerHTML = '';
+            }
+        }
+
+        async function cargarFechasBloqueadas(sedeId) {
+            const input = document.getElementById('rangoFechas');
+            if (!sedeId) {
+                input.disabled = true;
+                if (calendarioFechas.altInput) calendarioFechas.altInput.disabled = true;
+                calendarioFechas.clear();
+                return;
+            }
+            try {
+                const response = await fetch(`/Reservas/ObtenerFechasOcupadas?sedeId=${sedeId}`);
+                const rangos = await response.json();
+                calendarioFechas.clear();
+                calendarioFechas.set("disable", rangos);
+                input.disabled = false;
+                if (calendarioFechas.altInput) {
+                    calendarioFechas.altInput.disabled = false;
+                    calendarioFechas.altInput.placeholder = "Seleccione el rango de su estadía...";
+                }
+            } catch (err) {
+                console.error("Error cargando fechas ocupadas:", err);
+            }
+        }
+
+        document.getElementById('formDisponibilidad').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const sedeId          = document.getElementById('sedeId').value;
+            const fechaLlegada    = document.getElementById('fechaLlegada').value;
+            const fechaSalida     = document.getElementById('fechaSalida').value;
+            const cantidadPersonas = document.getElementById('cantidadPersonas').value;
+
+            if (!sedeId) {
+                alert("Seleccione un destino.");
+                return;
+            }
+            if (!fechaLlegada || !fechaSalida) {
+                alert("Seleccione un rango de fechas válido en el calendario.");
+                return;
+            }
+
+            document.getElementById('btnConsultar').disabled = true;
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('resultadosContenedor').style.display = 'none';
+
+            try {
+                const url = `/Reservas/BuscarDisponibilidadSp?sedeId=${sedeId}&fechaLlegada=${fechaLlegada}&fechaSalida=${fechaSalida}&cantidadPersonas=${cantidadPersonas}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const grid = document.getElementById('gridResultados');
+                grid.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-warning border-0 shadow-sm p-4 text-center rounded-3">
+                                <h5 class="fw-bold mb-1">No hay alojamientos disponibles</h5>
+                                <p class="text-muted small mb-0">No se encontraron alojamientos disponibles para los criterios seleccionados en estas fechas.</p>
+                            </div>
+                        </div>`;
+                } else {
+                    data.forEach(item => {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-6 col-lg-4';
+                        
+                        const estadoText = item.estadoDisp;
+                        const isAv = estadoText === "Disponible";
+                        
+                        let badgeClass = "bg-danger-subtle text-danger border-danger-subtle";
+                        if (isAv) badgeClass = "bg-success-subtle text-success border-success-subtle";
+                        else if (estadoText === "Excede capacidad") badgeClass = "bg-warning-subtle text-warning border-warning-subtle";
+                        else if (estadoText === "Ocupado por fechas") badgeClass = "bg-secondary-subtle text-secondary border-secondary-subtle";
+                        
+                        const opacity = isAv ? "1" : "0.75";
+                        const disabledAttr = isAv ? "" : "disabled";
+                        
+                        const costo = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.costoEstimado || 0);
+
+                        col.innerHTML = `
+                            <div class="card h-100 border-0 shadow-sm bg-white rounded-3 overflow-hidden custom-aloj-card" style="opacity: ${opacity}">
+                                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <h5 class="fw-bold text-dark mb-0 text-truncate-1">${item.alojamiento}</h5>
+                                            <span class="badge ${badgeClass} border rounded-pill px-2 py-1 small fw-semibold text-wrap" style="max-width: 120px;">
+                                                ${estadoText}
+                                            </span>
+                                        </div>
+
+                                        <div class="d-flex gap-2 mb-3 flex-wrap">
+                                            <span class="badge bg-light text-secondary border rounded-2 px-2 py-1.5 small fw-medium">
+                                                Habitaciones: ${item.tipoAlojamiento}
+                                            </span>
+                                            <span class="badge bg-light text-secondary border rounded-2 px-2 py-1.5 small fw-medium">
+                                                Máx (Dormir): ${item.capacidadMaxima} Pers.
+                                            </span>
+                                            <span class="badge bg-light text-primary border rounded-2 px-2 py-1.5 small fw-bold">
+                                                Est. ${costo}
+                                            </span>
+                                        </div>
+
+                                        <p class="text-secondary small card-aloj-desc mb-4">
+                                            ${item.descripcion || "Unidad vacacional totalmente dotada."}
+                                        </p>
+                                    </div>
+
+                                    <div class="border-top pt-3">
+                                        <div class="d-grid gap-2">
+                                            <a href="/Sedes/ConsultarTarifas?sedeId=${sedeId}&alojamientoId=${item.alojamientoId}" 
+                                               class="btn btn-outline-primary fw-semibold tracking-wider py-2 rounded-2 btn-action-tarifa" target="_blank">
+                                                Consultar Tarifas
+                                            </a>
+                                            <button type="button" class="btn btn-primary fw-semibold rounded-2 py-2 btn-buscar" 
+                                                    onclick="realizarReserva(${item.alojamientoId})" ${disabledAttr}>
+                                                ${isAv ? 'Confirmar Reserva' : 'No disponible'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(col);
+                    });
+                }
+
+                document.getElementById('resultadosContenedor').style.display = 'block';
+
+            } catch (err) {
+                alert("Error al consultar la disponibilidad. Intente nuevamente.");
+                console.error(err);
+            } finally {
+                document.getElementById('btnConsultar').disabled = false;
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        });
+
+        async function realizarReserva(alojamientoId) {
+            const sedeId          = document.getElementById('sedeId').value;
+            const fechaLlegada    = document.getElementById('fechaLlegada').value;
+            const fechaSalida     = document.getElementById('fechaSalida').value;
+            const cantidadPersonas = document.getElementById('cantidadPersonas').value;
+
+            if (!confirm('¿Desea confirmar la reserva y calcular el costo final?')) return;
+
+            const formData = new FormData();
+            formData.append('sedeId', sedeId);
+            formData.append('alojamientoId', alojamientoId);
+            formData.append('fechaLlegada', fechaLlegada);
+            formData.append('fechaSalida', fechaSalida);
+            formData.append('cantidadPersonas', cantidadPersonas);
+
+            try {
+                const response = await fetch('/Reservas/ConfirmarReserva', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`Reserva registrada exitosamente.\n\n${data.mensaje}\nTotal: ${data.total}`);
+                    document.getElementById('resultadosContenedor').style.display = 'none';
+                    document.getElementById('formDisponibilidad').reset();
+                    cargarFechasBloqueadas('');
+                } else {
+                    alert(data.mensaje);
+                    if (data.mensaje && data.mensaje.includes('sesión')) window.location.href = '/Cuenta/Login';
+                }
+            } catch (err) {
+                alert("Error al procesar la reserva. Intente nuevamente.");
+            }
+        }
+    </script>
+
+    <style>
+        .btn-buscar {
+            background-color: #1e3c72;
+            border-color: #1e3c72;
+            transition: background-color 0.2s ease;
+        }
+        .btn-buscar:hover {
+            background-color: #2a5298;
+            border-color: #2a5298;
+        }
+        .btn-reservar {
+            background-color: #1e3c72;
+            border-color: #1e3c72;
+            font-size: 0.75rem;
+            transition: background-color 0.2s ease;
+        }
+        .btn-reservar:hover {
+            background-color: #2a5298;
+            border-color: #2a5298;
+        }
+        .form-select:focus,
+        .form-control:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 0.2rem rgba(42, 82, 152, 0.15);
+        }
+        .bg-success-subtle { background-color: #d1e7dd; }
+        .bg-danger-subtle  { background-color: #f8d7da; }
+        
+        .custom-aloj-card {
+            transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease;
+        }
+        .custom-aloj-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08) !important;
+        }
+        .btn-action-tarifa {
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .card-aloj-desc {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 4.5rem; 
+        }
+        .text-truncate-1 {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 75%;
+        }
+    </style>
+}

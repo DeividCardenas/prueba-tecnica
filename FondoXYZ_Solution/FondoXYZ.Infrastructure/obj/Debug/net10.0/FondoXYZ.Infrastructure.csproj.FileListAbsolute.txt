@@ -1,0 +1,15 @@
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\bin\Debug\net10.0\FondoXYZ.Infrastructure.deps.json
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\bin\Debug\net10.0\FondoXYZ.Infrastructure.dll
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\bin\Debug\net10.0\FondoXYZ.Infrastructure.pdb
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\bin\Debug\net10.0\FondoXYZ.Domain.dll
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\bin\Debug\net10.0\FondoXYZ.Domain.pdb
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\FondoXYZ.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\FondoXYZ.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\FondoXYZ.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\FondoXYZ.Infrastructure.AssemblyInfo.cs
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\FondoXYZ.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\FondoXYZ.EAA2ED22.Up2Date
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\FondoXYZ.Infrastructure.dll
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\refint\FondoXYZ.Infrastructure.dll
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\FondoXYZ.Infrastructure.pdb
+C:\Users\Deivid Cardenas\Documents\prueba-tecnica\FondoXYZ_Solution\FondoXYZ.Infrastructure\obj\Debug\net10.0\ref\FondoXYZ.Infrastructure.dll

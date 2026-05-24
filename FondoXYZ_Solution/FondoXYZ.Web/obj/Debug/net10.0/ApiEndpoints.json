@@ -1,0 +1,84 @@
+[
+  {
+    "ContainingType": "FondoXYZ.Web.Controllers.TarifasApiController",
+    "Method": "CalcularTarifas",
+    "RelativePath": "api/tarifas/calcular",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sedeId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "alojamientoId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "cantidadPersonas",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "cantidadVisitantes",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "fechaLlegada",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "fechaSalida",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      },
+      {
+        "Name": "incluyeLavanderia",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "FondoXYZ.Web.Controllers.TarifasApiController",
+    "Method": "PreviewTarifa",
+    "RelativePath": "api/tarifas/preview",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "sedeId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "alojamientoId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "cantidadPersonas",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "cantidadVisitantes",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "fechaLlegada",
+        "Type": "System.DateTime",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

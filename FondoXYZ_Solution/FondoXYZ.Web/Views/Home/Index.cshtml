@@ -1,0 +1,88 @@
+@{
+    ViewData["Title"] = "Panel de Control";
+}
+
+<div class="container mt-2">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-white rounded-3 shadow-sm border-0 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">¡Bienvenido!</h2>
+                    <p class="text-muted mb-0">Este es tu portal de bienestar. Desde aquí puedes gestionar tu tiempo de descanso familiar.</p>
+                </div>
+                <div>
+                    <span class="text-muted small fw-medium">Fecha de acceso: @DateTime.Today.ToString("dd / MM / yyyy")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-body p-4 border-start border-primary border-5">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold mb-2">Destinos Disponibles</h6>
+                            <h2 class="display-6 fw-bold text-dark mb-0">@ViewBag.TotalSedes</h2>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-3 text-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+                                <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a asp-controller="Sedes" asp-action="Index" class="text-primary text-decoration-none small fw-bold">Ver catálogo de sedes &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-body p-4 border-start border-success border-5">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold mb-2">Mis Reservas Próximas</h6>
+                            <h2 class="display-6 fw-bold text-dark mb-0">@ViewBag.ReservasProximas</h2>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-calendar-check-fill" viewBox="0 0 16 16">
+                                <path d="M4 .5a.5.5 0 0 0-1 0V1H2a2 2 0 0 0-2 2v1h16V3a2 2 0 0 0-2-2h-1V.5a.5.5 0 0 0-1 0V1H4V.5zM16 14V5H0v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2zm-5.146-5.146-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708.708z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a asp-controller="Reservas" asp-action="MisReservas" class="text-success text-decoration-none small fw-bold">Administrar mis reservas &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm rounded-3 bg-dark text-white">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="fw-bold mb-1">Planeando un descanso</h5>
+                    </div>
+                    <div class="mt-10 mt-xl-0">
+                        <a asp-controller="Sedes" asp-action="Index" class="btn btn-light btn-sm w-100 fw-bold rounded-2 py-2 text-uppercase tracking-wider">Reserva un lugar ahora</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="bg-white p-4 rounded-3 shadow-sm border-0">
+                <h5 class="fw-bold text-dark mb-3">Información del Sistema</h5>
+                <ul class="text-muted small mb-0 ps-3">
+                    <li class="mb-2">El valor total de la reserva cambia de acuerdo a la temporada, el tipo de alojamiento y días festivos.</li>
+                    <li>Para cancelaciones recuerda realizar la solicitud con al menos 48 horas de anticipación.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

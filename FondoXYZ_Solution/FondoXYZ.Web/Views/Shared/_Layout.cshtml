@@ -1,0 +1,86 @@
+@using Microsoft.AspNetCore.Identity
+@using FondoXYZ.Domain.Entities
+@inject UserManager<Usuario> UserManager
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var displayName = currentUser?.NombreCompleto ?? "Asociado";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Fondo XYZ</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+            .navbar-custom {
+                background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            }
+
+            .nav-link {
+                transition: all 0.2s ease;
+            }
+
+                .nav-link:hover {
+                    opacity: 0.8;
+                    transform: translateY(-1px);
+                }
+    </style>
+</head>
+<body class="bg-light d-flex flex-column" style="min-height: 100vh;">
+
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark navbar-custom box-shadow mb-4 py-3 shadow-sm">
+            <div class="container">
+                <a class="navbar-brand fw-bold text-uppercase tracking-wider" asp-area="" asp-controller="Home" asp-action="Index">Fondo XYZ</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item me-2">
+                            <a class="nav-link text-white fw-semibold" asp-controller="Home" asp-action="Index">Inicio</a>
+                        </li>
+                        <li class="nav-item me-2">
+                            <a class="nav-link text-white fw-semibold" asp-controller="Sedes" asp-action="Index">Sedes y Destinos</a>
+                        </li>
+                        <li class="nav-item me-2">
+                            <a class="nav-link text-white fw-semibold" asp-controller="Reservas" asp-action="Disponibilidad">Buscar Disponibilidad</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white fw-semibold" asp-controller="Reservas" asp-action="MisReservas">Mis Reservas</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <span class="navbar-text text-white-50 me-3 fw-medium">
+                                Hola, @displayName
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm rounded-pill px-3" asp-controller="Cuenta" asp-action="Salir">Cerrar Sesión</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="container flex-grow-1">
+        @RenderBody()
+    </main>
+
+    <footer class="footer border-top text-muted bg-white py-3 mt-auto">
+        <div class="container text-center small">
+            &copy; 2026 - Fondo de Bienestar XYZ - Panel de Control Técnico Evaluativo.
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

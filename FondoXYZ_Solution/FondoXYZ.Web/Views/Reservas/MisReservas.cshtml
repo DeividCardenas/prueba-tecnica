@@ -1,0 +1,191 @@
+@model IEnumerable<FondoXYZ.Domain.Entities.Reserva>
+
+@{
+    ViewData["Title"] = "Mis Reservas";
+}
+
+<div class="container mt-2">
+    <div class="bg-white p-4 rounded-3 shadow-sm mb-4 border-0 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Mi Historial de Reservas</h3> 
+            <p class="text-muted mb-0">Consulte el estado, el valor y las fechas de sus estadías agendadas.</p>
+        </div>
+        <div>
+            <a asp-action="Disponibilidad" class="btn btn-primary fw-bold text-uppercase tracking-wider px-4 py-2.5 rounded-3 shadow-sm btn-nueva-reserva">
+                + Nueva Reserva
+            </a>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-3 p-5 text-center bg-white">
+            <div class="py-5">
+                <div class="bg-light p-3 rounded-pill d-inline-block mb-3 text-muted shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-journal-x" viewBox="0 0 16 16">
+                        <path d="M6.146 6.146a.5.5 0 0 1 .708 0L8 7.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 8l1.147 1.146a.5.5 0 0 1-.708.708L8 8.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 8 6.146 6.854a.5.5 0 0 1 0-.708z" />
+                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2v11a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2H2z" />
+                    </svg>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">No registras reservas activas</h5>
+                <p class="text-secondary small mb-4">Aún no has realizado ninguna solicitud de hospedaje en nuestro sistema.</p>
+                <a asp-action="Disponibilidad" class="btn btn-outline-primary btn-sm fw-bold px-4 py-2 rounded-2 text-uppercase">
+                    Buscar Disponibilidad Ahora
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (TempData["MensajeExito"] != null)
+        {
+            <div class="alert alert-success shadow-sm border-0 border-start border-success border-4 small mb-3" role="alert">
+                <span class="fw-bold">@TempData["MensajeExito"]</span>
+            </div>
+        }
+        @if (TempData["MensajeError"] != null)
+        {
+            <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 small mb-3" role="alert">
+                <span class="fw-bold">@TempData["MensajeError"]</span>
+            </div>
+        }
+
+        <div class="table-responsive shadow-sm rounded-3 border-0 bg-white">
+            <table class="table table-hover align-middle m-0 text-center">
+                <thead class="text-white small text-uppercase tracking-wider" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+                    <tr>
+                        <th class="py-3 text-start ps-4">Destino / Sede</th>
+                        <th class="py-3">Alojamiento Asignado</th>
+                        <th class="py-3">Periodo de Estadía</th>
+                        <th class="py-3">Acompañantes</th>
+                        <th class="py-3">Valor Total</th>
+                        <th class="py-3">Estado Reserva</th>
+                        <th class="py-3">Fecha Solicitud</th>
+                        <th class="py-3 pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="small text-secondary">
+                    @foreach (var reserva in Model)
+                    {
+                        // Lógica visual condicional para las filas canceladas
+                        <tr class="@(reserva.EstadoReserva == "Cancelada" ? "table-light opacity-75" : "")">
+
+                            <td class="align-middle text-start ps-4">
+                                <div class="fw-bold text-dark mb-0">@reserva.Sede.Nombre</div>
+                                <span class="badge rounded-pill mt-1 text-uppercase fw-bold px-2 py-0.5" style="font-size: 10px; background-color: #e9ecef; color: #495057;">
+                                    @reserva.Sede.Tipo
+                                </span>
+                            </td>
+
+                            <td class="align-middle fw-bold text-dark">
+                                <div class="mb-0">@reserva.Alojamiento.Nombre</div>
+                            </td>
+
+                            <td class="align-middle fw-medium text-dark">
+                                <div class="small"><span class="text-muted">Llegada:</span> @reserva.FechaLlegada.ToString("dd/MM/yyyy")</div>
+                                <div class="small"><span class="text-muted">Salida:</span> @reserva.FechaSalida.ToString("dd/MM/yyyy")</div>
+                            </td>
+
+                            <td class="align-middle font-monospace fw-bold text-secondary">
+                                <div>👥 @reserva.CantidadPersonas Ps.</div>
+                                @if (reserva.IncluyeLavanderia)
+                                {
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill mt-1" style="font-size: 10px;">
+                                        🧺 Lavandería
+                                    </span>
+                                }
+                            </td>
+
+                            <td class="align-middle fw-bold text-primary fs-6">
+                                @reserva.CostoTotal.ToString("C0")
+                            </td>
+
+                            <td class="align-middle">
+                                @if (reserva.EstadoReserva == "Confirmada")
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill fw-bold">
+                                        Confirmada
+                                    </span>
+                                }
+                                else if (reserva.EstadoReserva == "Pendiente")
+                                {
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1.5 rounded-pill fw-bold">
+                                        Pendiente
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1.5 rounded-pill fw-bold">
+                                        Cancelada
+                                    </span>
+                                }
+                            </td>
+
+                            <td class="align-middle text-muted pe-4 small">
+                                @reserva.FechaReserva.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+
+                            <!-- ACCIONES CRUD -->
+                            <td class="align-middle pe-4">
+                                @if (reserva.EstadoReserva != "Cancelada" && reserva.FechaLlegada > DateTime.Today)
+                                {
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a asp-action="EditarReserva" asp-route-id="@reserva.Id"
+                                           class="btn btn-outline-primary btn-sm rounded-2 fw-semibold px-2 py-1"
+                                           title="Editar fechas o personas" style="font-size:11px;">
+                                            ✏️ Editar
+                                        </a>
+                                        <form asp-action="CancelarReserva" asp-route-id="@reserva.Id" method="post" style="display:inline;"
+                                              onsubmit="return confirm('¿Seguro que desea cancelar la reserva #@reserva.Id? Esta acción no se puede deshacer.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-2 fw-semibold px-2 py-1" title="Cancelar reserva" style="font-size:11px;">
+                                                🚫 Cancelar
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted" style="font-size:11px;">Sin acciones</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <style>
+        .btn-nueva-reserva {
+            background-color: #1e3c72;
+            border-color: #1e3c72;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+            .btn-nueva-reserva:hover {
+                background-color: #2a5298;
+                border-color: #2a5298;
+                transform: translateY(-1px);
+            }
+        /* Sombras suaves para los badges de estado modernos */
+        .bg-success-subtle {
+            background-color: #d1e7dd;
+        }
+
+        .bg-warning-subtle {
+            background-color: #fff3cd;
+        }
+
+        .bg-danger-subtle {
+            background-color: #f8d7da;
+        }
+
+        .bg-info-subtle {
+            background-color: #cff4fc;
+        }
+    </style>
+}

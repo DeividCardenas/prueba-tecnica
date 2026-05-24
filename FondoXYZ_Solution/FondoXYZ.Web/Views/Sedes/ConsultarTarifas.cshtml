@@ -1,0 +1,460 @@
+@model FondoXYZ.Web.Controllers.CostoEstadiaDto
+
+@{
+    ViewData["Title"] = "Simulador Tarifario";
+    var sede = ViewBag.Sede as FondoXYZ.Domain.Entities.Sede;
+    var alojamiento = ViewBag.Alojamiento as FondoXYZ.Domain.Entities.Alojamiento;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+
+<div id="simuladorContext"
+     data-llegada="@ViewBag.FechaLlegada"
+     data-salida="@ViewBag.FechaSalida"
+     style="display: none;">
+</div>
+
+<div class="container mt-2">
+    <div class="mb-3">
+        <a asp-action="Detalles" asp-route-id="@ViewBag.SedeId" class="btn btn-link link-secondary text-decoration-none p-0 d-inline-flex align-items-center fw-semibold small">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+            </svg>
+            Volver a la unidad habitacional
+        </a>
+    </div>
+
+    <div class="bg-white p-4 rounded-3 shadow-sm mb-4 border-0">
+        <h3 class="fw-bold text-dark mb-1">Consulte el valor de su estadía y confirme su reserva</h3>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3 bg-white p-4 sticky-lg-top" style="top: 20px; z-index: 10;">
+                <h5 class="fw-bold text-dark mb-3">Detalles de la reserva</h5>
+
+                @if (alojamiento != null && sede != null)
+                {
+                    <div class="bg-light p-3 rounded-3 mb-4 border border-light shadow-sm">
+                        <span class="badge bg-primary rounded-pill mb-2 text-uppercase small">@sede.Nombre</span>
+                        <h6 class="fw-bold text-dark mb-1">Unidad: @alojamiento.Nombre</h6>
+                        <span class="text-muted small d-block">👥 Capacidad: @alojamiento.CapacidadMaxima Personas 
+                            @if (ViewBag.SedeId <= 6)
+                            {
+                                <span>(Se permiten adicionales)</span>
+                            }
+                            else
+                            {
+                                <span>(Capacidad Máxima Estricta)</span>
+                            }
+                        </span>
+                    </div>
+                }
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 small mb-3" role="alert">
+                        @ViewBag.Error
+                    </div>
+                }
+
+                <form id="formSimulador" onsubmit="calcularTarifasAjax(event)">
+                    <input type="hidden" id="sedeId" name="sedeId" value="@ViewBag.SedeId" />
+                    <input type="hidden" id="alojamientoId" name="alojamientoId" value="@ViewBag.AlojamientoId" />
+
+                    <div class="row g-2 mb-3">
+                        <div class="@(ViewBag.SedeId >= 1 && ViewBag.SedeId <= 5 ? "col-md-6" : "col-12")">
+                            <div class="form-floating">
+                                <input type="number" id="personasHospedaje" class="form-control rounded-3 border-light shadow-sm fw-bold text-center"
+                                       value="@(ViewBag.CantidadPersonas <= alojamiento.CapacidadMaxima ? ViewBag.CantidadPersonas : alojamiento.CapacidadMaxima)" min="1" max="10" required />
+                                <label for="personasHospedaje" class="text-muted" style="font-size: 12px;">Huéspedes (Duermen)</label>
+                            </div>
+                        </div>
+                        @if (ViewBag.SedeId >= 1 && ViewBag.SedeId <= 5)
+                        {
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" id="visitantesDia" class="form-control rounded-3 border-light shadow-sm fw-bold text-center text-info"
+                                           value="@(ViewBag.CantidadPersonas > alojamiento.CapacidadMaxima ? ViewBag.CantidadPersonas - alojamiento.CapacidadMaxima : 0)" min="0" max="10" required />
+                                    <label for="visitantesDia" class="text-info" style="font-size: 12px;">Visitantes Día ($5.500/n)</label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <input type="hidden" name="cantidadPersonas" id="cantidadPersonas" value="@(ViewBag.CantidadPersonas ?? 1)" />
+                    <input type="hidden" name="cantidadVisitantes" id="cantidadVisitantesHidden" value="0" />
+
+                    <div class="form-floating mb-3">
+                        <input type="text" id="rangoFechasSimulador" class="form-control rounded-3 border-light shadow-sm bg-white fw-semibold" placeholder="Seleccione estadía..." required />
+                        <label for="rangoFechasSimulador" class="text-muted">Tiempo de Estadía (Llegada - Salida)</label>
+                        <input type="hidden" name="fechaLlegada" id="fechaLlegada">
+                        <input type="hidden" name="fechaSalida" id="fechaSalida">
+                    </div>
+
+                    @if (ViewBag.SedeId == 8)
+                    {
+                        <div class="form-check form-switch mb-4 p-3 bg-light rounded-3 border border-light shadow-sm d-flex align-items-center justify-content-between">
+                            <div class="ms-2">
+                                <label class="form-check-label fw-bold text-dark d-block small" for="incluyeLavanderia">Servicio de Lavandería</label>
+                                <small class="text-muted d-block" style="font-size: 11px;">Adicionar recargo opcional de $18.000 a la estancia</small>
+                            </div>
+                            <input class="form-check-input me-2 h-5" type="checkbox" name="incluyeLavanderia" id="incluyeLavanderia" value="true" style="width: 2.5em; height: 1.25em; cursor: pointer;" />
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="hidden" id="incluyeLavanderia" name="incluyeLavanderia" value="false" />
+                    }
+
+                    <!-- BANNER PREVIEW DE TARIFA (aparece al seleccionar fechas) -->
+                    <div id="bannerPreviewTarifa" class="d-none mb-3 p-3 rounded-3 border shadow-sm" style="transition: all 0.3s ease;">
+                        <div class="d-flex align-items-center mb-2">
+                            <span id="iconoTarifa" class="me-2 fs-5"></span>
+                            <span id="textoTipoTarifa" class="fw-bold small"></span>
+                        </div>
+                        <p id="descTarifa" class="text-muted mb-2" style="font-size: 11px;"></p>
+                        <div class="row text-center g-2">
+                            <div class="col">
+                                <div class="bg-white rounded-2 p-2 border">
+                                    <small class="text-muted d-block" style="font-size: 10px;">Tarifa / Noche</small>
+                                    <span id="prevValorNoche" class="fw-bold text-dark small">$0</span>
+                                </div>
+                            </div>
+                            <div class="col" id="colAdicionalPreview">
+                                <div class="bg-white rounded-2 p-2 border">
+                                    <small class="text-muted d-block" style="font-size: 10px;">c/Persona Adicional</small>
+                                    <span id="prevValorAdicional" class="fw-bold text-danger small">$0</span>
+                                </div>
+                            </div>
+                            <div class="col d-none" id="colVisitantePreview">
+                                <div class="bg-white rounded-2 p-2 border">
+                                    <small class="text-muted d-block" style="font-size: 10px;">c/Visitante Día</small>
+                                    <span id="prevValorVisitante" class="fw-bold text-info small">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-center">
+                            <small class="text-muted" style="font-size: 9px; line-height: 1.1; display: block;">
+                                * Los valores mostrados corresponden a la tarifa de su día de llegada. El costo total de liquidación calculará automáticamente las variaciones por fines de semana, festivos o cambios de temporada.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="button" onclick="calcularTarifasAjax()" class="btn btn-primary fw-bold text-uppercase tracking-wider py-2.5 rounded-3 shadow-sm btn-calcular">
+                            Calcular Costo Estancia
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <!-- Bloque de espera -->
+            <div id="panelEsperando" class="card border-0 shadow-sm rounded-3 p-5 text-center bg-white h-100 d-flex align-items-center justify-content-center">
+                <div class="py-5">
+                     <span class="fs-1 d-block mb-3">🏨</span> 
+                    <p class="text-secondary small mb-0 px-4">Establezca los acompañantes y las fechas deseadas utilizando el calendario</p>
+                </div>
+            </div>
+
+            <!-- Bloque de liquidación (oculto inicialmente) -->
+            <div id="panelLiquidacion" class="card border-0 shadow-sm bg-white rounded-3 overflow-hidden border-start border-success border-5 d-none">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold text-success mb-0">Valor de la reserva</h5>
+                        <span class="badge bg-dark px-3 py-2 rounded-2" id="uiNochesTotales">🌙 0 Noches</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-secondary small">
+                        <span>Subtotal Hospedaje:</span>
+                        <span class="fw-bold text-dark" id="uiSubtotalBase">$0</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-secondary small" id="rowRecargos" style="display: none !important;">
+                        <span>Recargo Adicionales / Visitantes:</span>
+                        <span class="fw-bold text-danger" id="uiRecargoPersonas">+ $0</span>
+                    </div>
+
+                    @if (ViewBag.SedeId == 8)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-3 text-secondary small">
+                            <span>Costo de Lavandería:</span>
+                            <span class="fw-bold text-info" id="uiCostoLavanderia">+ $0</span>
+                        </div>
+                    }
+
+                    <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center mb-4">
+                        <span class="fw-bold text-dark">Valor total:</span>
+                        <h3 class="fw-bold text-primary mb-0" id="uiCostoTotal">$0</h3>
+                    </div>
+
+                    <form asp-controller="Reservas" asp-action="GuardarReservaFirme" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="sedeId" id="resSedeId" value="@ViewBag.SedeId" />
+                        <input type="hidden" name="alojamientoId" id="resAlojamientoId" value="@ViewBag.AlojamientoId" />
+                        <input type="hidden" name="fechaLlegada" id="resFechaLlegada" value="" />
+                        <input type="hidden" name="fechaSalida" id="resFechaSalida" value="" />
+                        <input type="hidden" name="cantidadPersonas" id="resCantidadPersonas" value="" />
+                        <input type="hidden" name="costoTotal" id="resCostoTotal" value="" />
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold tracking-wide shadow-sm py-3 rounded-3">
+                                Reservar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('simuladorContext');
+        const preLlegada = ctx.getAttribute('data-llegada');
+        const preSalida = ctx.getAttribute('data-salida');
+
+        // Instancia limpia de Calendario Doble Mes Estilo Airbnb
+        const calendario = flatpickr("#rangoFechasSimulador", {
+        mode: "range",
+        minDate: "today",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d \\de M \\de Y",
+        locale: "es",
+        showMonths: 2, // Despliegue dual de cuadrículas
+        onChange: function(selectedDates) {
+        if (selectedDates.length === 2) {
+            const fl = selectedDates[0].toISOString().split('T')[0];
+            const fs = selectedDates[1].toISOString().split('T')[0];
+            document.getElementById('fechaLlegada').value = fl;
+            document.getElementById('fechaSalida').value = fs;
+            // Disparar el preview automáticamente al seleccionar fechas
+            actualizarPreviewTarifa();
+        }
+        },
+        onDayCreate: function(dObj, dStr, fp, dayElem) {
+        if (dayElem.classList.contains("flatpickr-disabled")) {
+        dayElem.style.position = "relative";
+        const marcaX = document.createElement("span");
+        marcaX.innerText = "×";
+        marcaX.style.position = "absolute";
+        marcaX.style.top = "50%";
+        marcaX.style.left = "50%";
+        marcaX.style.transform = "translate(-50%, -50%)";
+        marcaX.style.fontSize = "16px";
+        marcaX.style.fontWeight = "bold";
+        marcaX.style.color = "#dc3545";
+        marcaX.style.opacity = "0.4";
+        marcaX.style.pointerEvents = "none";
+        dayElem.appendChild(marcaX);
+        }
+        }
+        });
+
+        // Conservación del estado visual de fechas seleccionadas tras el Postback
+        if (preLlegada && preSalida) {
+            calendario.setDate([preLlegada, preSalida]);
+            document.getElementById('fechaLlegada').value = preLlegada;
+            document.getElementById('fechaSalida').value = preSalida;
+        }
+        });
+
+        const formatearMoneda = (valor) => {
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
+        };
+
+        const inpHospedaje = document.getElementById('personasHospedaje');
+        const inpVisitantes = document.getElementById('visitantesDia');
+        const inpTotal = document.getElementById('cantidadPersonas');
+
+        function updatePersonas() {
+            let hosp = parseInt(inpHospedaje.value) || 1;
+            if (hosp > parseInt(inpHospedaje.max)) { hosp = parseInt(inpHospedaje.max); inpHospedaje.value = hosp; }
+            if (hosp < 1) { hosp = 1; inpHospedaje.value = hosp; }
+            
+            let vis = 0;
+            if (inpVisitantes) {
+                vis = parseInt(inpVisitantes.value) || 0;
+                let maxVis = 10 - hosp;
+                if (vis > maxVis) { vis = maxVis; inpVisitantes.value = vis; }
+                if (vis < 0) { vis = 0; inpVisitantes.value = vis; }
+            }
+            
+            
+            inpTotal.value = hosp;
+            if (document.getElementById('cantidadVisitantesHidden')) {
+                document.getElementById('cantidadVisitantesHidden').value = vis;
+            }
+            actualizarPreviewTarifa();
+        }
+
+        if (inpHospedaje) inpHospedaje.addEventListener('change', updatePersonas);
+        if (inpVisitantes) inpVisitantes.addEventListener('change', updatePersonas);
+
+        function actualizarPreviewTarifa() {
+            const sedeId         = document.getElementById('sedeId').value;
+            const alojamientoId  = document.getElementById('alojamientoId').value;
+            const cantHosp       = document.getElementById('cantidadPersonas').value;
+            const cantVis        = document.getElementById('visitantesDia') ? document.getElementById('visitantesDia').value : 0;
+            const fechaLlegada   = document.getElementById('fechaLlegada').value;
+
+            if (!sedeId || !alojamientoId || !cantHosp || !fechaLlegada) return;
+
+            const url = `/api/tarifas/preview?sedeId=${sedeId}&alojamientoId=${alojamientoId}&cantidadPersonas=${cantHosp}&cantidadVisitantes=${cantVis}&fechaLlegada=${fechaLlegada}`;
+
+            fetch(url)
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (!data) return;
+                    const banner   = document.getElementById('bannerPreviewTarifa');
+                    const icono    = document.getElementById('iconoTarifa');
+                    const tipo     = document.getElementById('textoTipoTarifa');
+                    const desc     = document.getElementById('descTarifa');
+                    const valNoche = document.getElementById('prevValorNoche');
+                    const valAdic  = document.getElementById('prevValorAdicional');
+                    const colAdic  = document.getElementById('colAdicionalPreview');
+                    const valVis   = document.getElementById('prevValorVisitante');
+                    const colVis   = document.getElementById('colVisitantePreview');
+
+                    // Estilo según tipo de tarifa
+                    banner.className = 'd-block mb-3 p-3 rounded-3 border shadow-sm';
+                    if (data.tipoTarifa === 'Especial') {
+                        banner.style.background = 'linear-gradient(135deg, #fff9e6, #fff3cd)';
+                        banner.style.borderColor = '#ffc107';
+                        icono.innerText  = '🌟';
+                        tipo.innerText   = 'Tarifa Especial Aplicable';
+                        tipo.className   = 'fw-bold small text-warning';
+                    } else if (data.tipoTarifa === 'Alta Temporada') {
+                        banner.style.background = 'linear-gradient(135deg, #fff0f0, #fde8e8)';
+                        banner.style.borderColor = '#dc3545';
+                        icono.innerText  = '🔥';
+                        tipo.innerText   = 'Alta Temporada';
+                        tipo.className   = 'fw-bold small text-danger';
+                    } else if (data.tipoTarifa === 'Baja Temporada') {
+                        banner.style.background = 'linear-gradient(135deg, #f0f8ff, #e8f4fd)';
+                        banner.style.borderColor = '#0d6efd';
+                        icono.innerText  = '💙';
+                        tipo.innerText   = 'Baja Temporada';
+                        tipo.className   = 'fw-bold small text-primary';
+                    } else {
+                        banner.style.background = 'linear-gradient(135deg, #f0fff4, #d4edda)';
+                        banner.style.borderColor = '#198754';
+                        icono.innerText  = '📋';
+                        tipo.innerText   = 'Tarifa ' + data.tipoTarifa;
+                        tipo.className   = 'fw-bold small text-success';
+                    }
+
+                    desc.innerText       = data.descripcionTarifa;
+                    valNoche.innerText   = formatearMoneda(data.valorBaseNoche) + ' / noche';
+
+                    if (data.valorPersonaAdicional > 0) {
+                        valAdic.innerText = formatearMoneda(data.valorPersonaAdicional);
+                        valAdic.className = 'fw-bold text-danger small';
+                    } else {
+                        valAdic.innerText = "No Aplica";
+                        valAdic.className = 'fw-bold text-secondary small';
+                        
+                        // Evitar sobrecupo en alojamientos sin personas adicionales
+                        if (parseInt(cantHosp) > data.capacidadIncluida && data.valorVisitanteDia == 0) {
+                            alert(`Esta unidad habitacional no permite personas adicionales. La capacidad máxima es de ${data.capacidadIncluida} personas.`);
+                            document.getElementById('cantidadPersonas').value = data.capacidadIncluida;
+                            
+                            // Re-ejecutar el preview con la cantidad corregida
+                            setTimeout(actualizarPreviewTarifa, 100);
+                            return; // Detener ejecución actual
+                        }
+                    }
+
+                    if (data.valorVisitanteDia > 0) {
+                        colVis.classList.remove('d-none');
+                        valVis.innerText = formatearMoneda(data.valorVisitanteDia);
+                    } else {
+                        colVis.classList.add('d-none');
+                    }
+                })
+                .catch(() => { /* silencioso si no hay datos aún */ });
+        }
+
+        function calcularTarifasAjax(e) {
+            if (e) e.preventDefault();
+            
+            const sedeId = document.getElementById('sedeId').value;
+            const alojamientoId = document.getElementById('alojamientoId').value;
+            const cantHosp = document.getElementById('cantidadPersonas').value;
+            const fechaLlegada = document.getElementById('fechaLlegada').value;
+            const fechaSalida = document.getElementById('fechaSalida').value;
+            const cantVis = document.getElementById('visitantesDia') ? document.getElementById('visitantesDia').value : 0;
+            const lavanderia = document.getElementById('incluyeLavanderia') ? document.getElementById('incluyeLavanderia').checked : false;
+
+            if (!fechaLlegada || !fechaSalida || !cantHosp) {
+                alert("Por favor ingrese cantidad de personas y seleccione el rango de fechas.");
+                return;
+            }
+
+            const url = `/api/tarifas/calcular?sedeId=${sedeId}&alojamientoId=${alojamientoId}&cantidadPersonas=${cantHosp}&cantidadVisitantes=${cantVis}&fechaLlegada=${fechaLlegada}&fechaSalida=${fechaSalida}&incluyeLavanderia=${lavanderia}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.mensaje || "Error al calcular la tarifa") });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update UI
+                    document.getElementById('uiNochesTotales').innerText = `🌙 ${data.nochesTotales} Noches`;
+                    document.getElementById('uiSubtotalBase').innerText = formatearMoneda(data.subtotalTarifaBase);
+                    
+                    if (data.totalExcedentePersonas > 0) {
+                        document.getElementById('rowRecargos').style.setProperty('display', 'flex', 'important');
+                        document.getElementById('uiRecargoPersonas').innerText = '+ ' + formatearMoneda(data.totalExcedentePersonas);
+                    } else {
+                        document.getElementById('rowRecargos').style.setProperty('display', 'none', 'important');
+                    }
+
+                    const uiLavanderia = document.getElementById('uiCostoLavanderia');
+                    if (uiLavanderia) {
+                        uiLavanderia.innerText = '+ ' + formatearMoneda(data.costoLavanderia);
+                    }
+                    document.getElementById('uiCostoTotal').innerText = formatearMoneda(data.costoTotalEstadia);
+
+                    // Update Hidden fields for submission
+                    document.getElementById('resFechaLlegada').value = fechaLlegada;
+                    document.getElementById('resFechaSalida').value = fechaSalida;
+                    document.getElementById('resCantidadPersonas').value = cantidadPersonas;
+                    document.getElementById('resCostoTotal').value = data.costoTotalEstadia;
+
+                    // Swap Panels
+                    document.getElementById('panelEsperando').classList.remove('d-flex');
+                    document.getElementById('panelEsperando').classList.add('d-none');
+                    document.getElementById('panelLiquidacion').classList.remove('d-none');
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        }
+    </script>
+
+    <style>
+        .btn-calcular {
+        background-color: #1e3c72;
+        border-color: #1e3c72;
+        font-size: 0.8rem;
+        }
+
+        .btn-calcular:hover {
+        background-color: #2a5298;
+        border-color: #2a5298;
+        }
+    </style>
+}

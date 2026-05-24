@@ -1,0 +1,127 @@
+@model FondoXYZ.Domain.Entities.Usuario
+
+@{
+    ViewData["Title"] = "Crear Cuenta";
+    Layout = null; // Pantalla independiente
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Fondo XYZ</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+            /* Estilos personalizados para el Split-Screen */
+            .bg-register-image {
+                background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+                color: white;
+            }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            }
+
+            .btn-primary {
+                padding: 12px;
+                letter-spacing: 0.5px; /* CORREGIDO: Se cambió font-spacing por letter-spacing */
+            }
+    </style>
+</head>
+<body class="bg-light">
+
+    <div class="container-fluid ps-md-0">
+        <div class="row g-0">
+            <div class="d-none d-md-flex col-md-5 col-lg-6 bg-register-image align-items-center justify-content-center p-5 text-center shadow-lg">
+                <div>
+                    <h1 class="display-4 fw-bold mb-4">Fondo XYZ</h1>
+                    <p class="lead mb-5">Únete a nuestro sistema de reservas y disfruta de las mejores sedes recreativas y apartamentos a nivel nacional.</p>
+                    <div class="mt-5">
+                        <span class="badge bg-light text-primary p-2 fs-6 rounded-pill shadow-sm">Rápido, Seguro y Confiable</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7 col-lg-6">
+                <div class="login d-flex align-items-center py-5" style="min-height: 100vh;">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-md-10 col-lg-8">
+
+                                <h3 class="login-heading mb-2 fw-bold text-dark">Crear una cuenta</h3>
+                                <p class="text-muted mb-4">Ingresa tus datos para registrarte en la plataforma.</p>
+
+                                @* Alerta de Error *@
+                                @if (ViewBag.Error != null)
+                                {
+                                    <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 small" role="alert">
+                                        <span class="fw-bold">@ViewBag.Error</span>
+                                    </div>
+                                }
+
+                                <form asp-action="Registro" method="post">
+                                    @Html.AntiForgeryToken()
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-floating">
+                                                <input asp-for="NroDocumento" class="form-control rounded-3 border-light shadow-sm" placeholder="Documento" required data-val-required="Este campo es obligatorio." oninput="this.setCustomValidity(''); this.value = this.value.replace(/[^0-9]/g, '');" oninvalid="this.setCustomValidity('Por favor complete este campo.')" />
+                                                <label asp-for="NroDocumento" class="text-muted">Nro. Documento</label>
+                                                <span asp-validation-for="NroDocumento" class="text-danger small fw-bold"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-floating">
+                                                <input name="celular" id="celular" class="form-control rounded-3 border-light shadow-sm" placeholder="Celular" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+                                                <label for="celular" class="text-muted">Celular (Opcional)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <input asp-for="NombreCompleto" class="form-control rounded-3 border-light shadow-sm" placeholder="Nombre" required data-val-required="Este campo es obligatorio." oninput="this.setCustomValidity(''); this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');" oninvalid="this.setCustomValidity('Por favor complete este campo.')" />
+                                        <label asp-for="NombreCompleto" class="text-muted">Nombre Completo</label>
+                                        <span asp-validation-for="NombreCompleto" class="text-danger small fw-bold"></span>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <input name="direccionEmail" id="direccionEmail" type="email" class="form-control rounded-3 border-light shadow-sm" placeholder="Correo" required data-val-required="Este campo es obligatorio." data-val-email="El correo no es válido." oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('Por favor ingrese un correo válido.')" />
+                                        <label for="direccionEmail" class="text-muted">Correo Electrónico</label>
+                                    </div>
+
+                                    <div class="form-floating mb-4">
+                                        <input name="clave" id="clave" type="password" class="form-control rounded-3 border-light shadow-sm" placeholder="Contraseña" required minlength="4" data-val-required="Este campo es obligatorio." oninput="this.setCustomValidity('')" oninvalid="this.setCustomValidity('Por favor ingrese su contraseña (mín. 4 caracteres).')" />
+                                        <label for="clave" class="text-muted">Contraseña</label>
+                                        <div class="form-text small text-muted">Mínimo 4 caracteres numéricos (Prueba).</div>
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button class="btn btn-primary btn-lg rounded-3 shadow text-uppercase fw-bold" type="submit">Registrarse Ahora</button>
+                                    </div>
+
+                                    <hr class="my-4 text-muted">
+
+                                    <div class="text-center">
+                                        <span class="text-muted small">¿Ya tienes una cuenta?</span>
+                                        <a class="text-primary fw-bold text-decoration-none small" asp-action="Login">Inicia sesión aquí</a>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>
