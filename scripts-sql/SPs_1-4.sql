@@ -1,5 +1,15 @@
-USE DB_FondoXYZ;
+USE FondoXYZ_DB;
 GO
+
+-- =====================================================================================
+-- PROCEDIMIENTOS ALMACENADOS - SISTEMA DE RESERVAS FONDO XYZ
+-- Nombres sincronizados con los controladores C# del proyecto FondoXYZ.Web
+-- SP1: sp_ConsultarDisponibilidadPorFechas
+-- SP2: sp_ConsultarDisponibilidadPorFechasYPersonas
+-- SP3: sp_ConsultarTarifaAlojamiento  (llamado así en SedesController.cs)
+-- SP4: sp_CalcularCostoReserva        (llamado así en ReservasController.cs)
+-- SP5: sp_PreviewTarifa               (preview de tarifa antes de confirmar)
+-- =====================================================================================
 
 -- ===================================================================================
 -- SP 1: CONSULTAR DISPONIBILIDAD POR RANGO DE FECHAS
@@ -60,9 +70,10 @@ PRINT 'SP 2 optimizado';
 GO
 
 -- ===================================================================================
--- SP 3: VER TARIFAS (FILTRADO INTELIGENTE POR UNIDAD)
+-- SP 3: CONSULTAR TARIFA DE ALOJAMIENTO
+-- Nombre: sp_ConsultarTarifaAlojamiento (sincronizado con SedesController.cs)
 -- ===================================================================================
-CREATE OR ALTER PROCEDURE sp_VerTarifas
+CREATE OR ALTER PROCEDURE sp_ConsultarTarifaAlojamiento
     @SedeId INT, 
     @AlojamientoId INT, 
     @CantidadPersonas INT, 
@@ -98,11 +109,12 @@ BEGIN
     ORDER BY t.ValorBase;
 END
 GO
-PRINT 'SP 3 optimizado con segmentación estricta';
+PRINT 'SP 3 (sp_ConsultarTarifaAlojamiento) creado/actualizado';
 GO
 
 -- ===================================================================================
--- SP 4: CALCULAR COSTO DE RESERVA (LIQUIDACIÓN COMPLETA CORREGIDA)
+-- SP 4: CALCULAR COSTO DE RESERVA (LIQUIDACIÓN COMPLETA)
+-- Nombre: sp_CalcularCostoReserva (sincronizado con ReservasController.cs)
 -- ===================================================================================
 CREATE OR ALTER PROCEDURE sp_CalcularCostoReserva
     @SedeId INT,

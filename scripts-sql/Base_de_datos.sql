@@ -3,23 +3,26 @@
 -- Versión: 2.0 con ASP.NET Core Identity integrado
 -- INSTRUCCIÓN: Ejecutar este script COMPLETO en SQL Server Management Studio
 --              antes de lanzar el proyecto por primera vez.
+--
+-- NOTA: El nombre de la base de datos es FondoXYZ_DB, que corresponde al valor
+--       configurado en appsettings.json (ConnectionStrings.DefaultConnection).
 -- =====================================================================================
 
 USE master;
 GO
 
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'DB_FondoXYZ')
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'FondoXYZ_DB')
 BEGIN
-    CREATE DATABASE DB_FondoXYZ;
-    PRINT 'Base de datos DB_FondoXYZ creada exitosamente.';
+    CREATE DATABASE FondoXYZ_DB;
+    PRINT 'Base de datos FondoXYZ_DB creada exitosamente.';
 END
 ELSE
 BEGIN
-    PRINT 'La base de datos DB_FondoXYZ ya existe. Se procederá a recrear las tablas.';
+    PRINT 'La base de datos FondoXYZ_DB ya existe. Se procederá a recrear las tablas.';
 END
 GO
 
-USE DB_FondoXYZ;
+USE FondoXYZ_DB;
 GO
 
 -- =====================================================================================
@@ -75,9 +78,9 @@ CREATE TABLE Roles (
 GO
 
 -- 2.3 Tabla Usuarios — Esquema ASP.NET Core Identity (IdentityUser<int>)
---     Las propiedades de negocio del Fondo conviven con las de Identity
+--     Campos de negocio: solo los que se usan activamente en el aplicativo.
 CREATE TABLE Usuarios (
-    -- Columnas de ASP.NET Core Identity (obligatorias)
+    -- Columnas requeridas por ASP.NET Core Identity
     Id                   INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     UserName             NVARCHAR(256) NULL,
     NormalizedUserName   NVARCHAR(256) NULL,
@@ -93,19 +96,9 @@ CREATE TABLE Usuarios (
     LockoutEnd           DATETIMEOFFSET NULL,
     LockoutEnabled       BIT NOT NULL DEFAULT 0,
     AccessFailedCount    INT NOT NULL DEFAULT 0,
-    -- Columnas de negocio del Fondo XYZ
+    -- Columnas de negocio del Fondo XYZ (usadas en Registro y sesión)
     NroDocumento         NVARCHAR(50) NOT NULL UNIQUE,
     NombreCompleto       NVARCHAR(150) NOT NULL,
-    FechaNacimiento      DATE NULL,
-    Departamento         NVARCHAR(100) NULL,
-    Municipio            NVARCHAR(100) NULL,
-    Barrio               NVARCHAR(100) NULL,
-    DireccionResidencia  NVARCHAR(250) NULL,
-    TelefonoResidencia   NVARCHAR(50) NULL,
-    PreguntaSecreta      NVARCHAR(150) NULL,
-    RespuestaSecreta     NVARCHAR(150) NULL,
-    AutorizaCorreo       BIT NOT NULL DEFAULT 0,
-    AutorizaCelular      BIT NOT NULL DEFAULT 0,
     FechaRegistro        DATETIME DEFAULT GETDATE()
 );
 GO
@@ -223,7 +216,7 @@ INSERT INTO Usuarios (
     UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed,
     PasswordHash, SecurityStamp, ConcurrencyStamp,
     PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount,
-    NroDocumento, NombreCompleto, FechaNacimiento, AutorizaCorreo, AutorizaCelular
+    NroDocumento, NombreCompleto
 )
 VALUES (
     '12345678',
@@ -237,9 +230,7 @@ VALUES (
     '3001234567',
     0, 0, 1, 0,
     '12345678',
-    'Administrador del Sistema',
-    '1990-01-01',
-    1, 1
+    'Administrador del Sistema'
 );
 PRINT 'Usuario de prueba insertado: Documento=12345678 / Contraseña=Admin1234!';
 GO
